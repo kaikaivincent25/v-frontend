@@ -1,17 +1,23 @@
 // src/hooks/useApi.js
 import { useState, useEffect } from 'react'
-import axios from 'axios'
 
 const BASE = import.meta.env.VITE_API_BASE_URL || '/api'
 
+async function apiFetch(url) {
+  const response = await fetch(url)
+  if (!response.ok) throw new Error(`HTTP error: ${response.status}`)
+  return response.json()
+}
+
 export function useApi(endpoint) {
-  const [data, setData]       = useState(null)
+  const [data,    setData]    = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState(null)
+  const [error,   setError]   = useState(null)
 
   useEffect(() => {
-    axios.get(`${BASE}${endpoint}`)
-      .then(res => { setData(res.data); setLoading(false) })
+    setLoading(true)
+    apiFetch(`${BASE}${endpoint}`)
+      .then(res  => { setData(res);         setLoading(false) })
       .catch(err => { setError(err.message); setLoading(false) })
   }, [endpoint])
 
@@ -19,6 +25,10 @@ export function useApi(endpoint) {
 }
 
 export async function postContact(formData) {
-  const res = await axios.post(`${BASE}/contact/`, formData)
-  return res.data
+  const response = await fetch(`${BASE}/contact/`, {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify(formData),
+  })
+  return response.json()
 }
